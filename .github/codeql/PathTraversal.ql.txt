@@ -1,0 +1,19 @@
+/**
+ * @name Path Traversal in WebView URL Construction
+ * @description Detects path traversal sequences in URL parameters
+ * @kind problem
+ * @problem.severity high
+ * @id java/android/webview-path-traversal
+ */
+
+import java
+
+from MethodCall encode, StringLiteral traversal
+where
+  encode.getMethod().hasName("encode") and
+  encode.getMethod().getDeclaringType().hasName("URLEncoder") and
+  traversal.getValue().matches("%../%") and
+  encode.getAnArgument() = traversal
+select 
+  encode, 
+  "Path traversal sequence (../) encoded in URL - potential file access bypass"
