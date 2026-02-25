@@ -1,6 +1,0 @@
-name: medallia-webview-queries
-version: 1.0.0
-dependencies:
-  codeql/java-all: ^0.8.0
-  codeql/java-queries: ^0.8.0
-extractor: java
