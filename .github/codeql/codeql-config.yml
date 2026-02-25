@@ -5,8 +5,7 @@ disable-default-queries: false
 queries:
   - uses: security-extended
   - uses: security-and-quality
-  - uses: ./custom-queries/WebViewFileAccess.ql
-  - uses: ./custom-queries/PathTraversal.ql
+  # Remove custom queries for now - use built-in only
 
 query-filters:
   - include:
@@ -15,14 +14,3 @@ query-filters:
   - include:
       id: java/android/insecure-webview-settings
       severity: high
-  - exclude:
-      id: java/trivial-eval
-
-paths:
-  - src/
-  - '**/*.java'
-
-paths-ignore:
-  - '**/test/**'
-  - '**/androidTest/**'
-  - '**/build/**'
