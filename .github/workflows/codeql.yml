@@ -20,37 +20,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Install query pack BEFORE init (using Node.js/npx approach)
-      - name: Setup Node.js for CodeQL pack management
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      # Install CodeQL CLI manually for pack management
-      - name: Install CodeQL CLI
-        run: |
-          echo "Downloading CodeQL CLI..."
-          cd /tmp
-          wget -q https://github.com/github/codeql-cli-binaries/releases/download/v2.20.0/codeql-linux64.zip
-          unzip -q codeql-linux64.zip
-          sudo mv codeql /usr/local/bin/
-          echo "CodeQL CLI installed"
-          codeql --version
-
-      # Install custom query pack
-      - name: Install custom query pack
-        run: |
-          echo "Installing custom query pack..."
-          cd .github/codeql/custom-queries
-          /usr/local/bin/codeql pack install
-          echo "Pack installed successfully"
-
-      # Now initialize CodeQL (pack is ready)
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
           languages: java
-          config-file: ./.github/codeql/codeql-config.yml
+          queries: security-extended,security-and-quality
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v4
