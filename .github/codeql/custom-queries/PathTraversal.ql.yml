@@ -1,10 +1,13 @@
 /**
- * @name Path Traversal in WebView URL Construction
- * @description Detects path traversal sequences in URL parameters
+ * @name Path Traversal in URL Construction
+ * @description Detects path traversal sequences in URL encoding
  * @kind problem
  * @problem.severity high
  * @id java/android/webview-path-traversal
+ * @tags security
  */
+
+// CodeQL pack: medallia-webview-queries
 
 import java
 
