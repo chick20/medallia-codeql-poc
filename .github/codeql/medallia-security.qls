@@ -1,0 +1,11 @@
+# Medallia Security Query Suite
+# Reference: https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning
+
+# Use standard security queries
+import codeql-suites/java-security-extended.qls
+
+# Include our custom queries by path
++ queries: .
+  from: custom-queries/WebViewFileAccess.ql
++ queries: .
+  from: custom-queries/PathTraversal.ql

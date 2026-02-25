@@ -21,13 +21,24 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4          # ← Updated to v4!
+        uses: github/codeql-action/init@v4
         with:
           languages: java
           config-file: ./.github/codeql/codeql-config.yml
+          queries: security-extended
+
+      - name: Install custom query pack
+        run: |
+          echo "Installing custom query pack..."
+          cd .github/codeql/custom-queries
+          codeql pack install
+          echo "Pack installed successfully"
+          cd ../../..
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v4     # ← Updated to v4!
+        uses: github/codeql-action/autobuild@v4
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4        # ← Updated to v4!
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:java"
