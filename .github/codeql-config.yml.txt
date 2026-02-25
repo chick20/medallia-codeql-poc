@@ -1,28 +1,88 @@
-name: "Medallia WebView Security Analysis"
+name: "CodeQL WebView Vulnerability POC"
 
-disable-default-queries: false
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
 
-queries:
-  - uses: security-extended
-  - uses: security-and-quality
-  - uses: ./custom-queries/WebViewFileAccess.ql
-  - uses: ./custom-queries/PathTraversal.ql
+jobs:
+  analyze:
+    name: Analyze Medallia WebView Security
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
 
-query-filters:
-  - include:
-      id: java/android/websettings-file-access
-      severity: critical
-  - include:
-      id: java/android/insecure-webview-settings
-      severity: high
-  - exclude:
-      id: java/trivial-eval
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [java]
 
-paths:
-  - src/
-  - '**/*.java'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-paths-ignore:
-  - '**/test/**'
-  - '**/androidTest/**'
-  - '**/build/**'
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+          config-file: ./.github/codeql/codeql-config.yml
+
+      - name: Compile Java source
+        run: |
+          mkdir -p build
+          # Compile all Java files, ignore Android dependencies (we just want analysis)
+          find src -name "*.java" -exec javac -d build -sourcepath src {} + 2>/dev/null || true
+          echo "Compilation attempted - CodeQL will analyze source regardless"
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
+          output: sarif-results
+          upload: true
+
+      - name: Generate human-readable report
+        if: always()
+        run: |
+          echo "# CodeQL Analysis Report" > REPORT.md
+          echo "" >> REPORT.md
+          echo "## Date: $(date)" >> REPORT.md
+          echo "## Commit: ${{ github.sha }}" >> REPORT.md
+          echo "" >> REPORT.md
+          echo "## Target: MedalliaWebView.java" >> REPORT.md
+          echo "" >> REPORT.md
+          echo "## Expected Vulnerabilities:" >> REPORT.md
+          echo "- [ ] WebView setAllowFileAccess(true)" >> REPORT.md
+          echo "- [ ] WebView setJavaScriptEnabled(true)" >> REPORT.md
+          echo "- [ ] JavaScriptInterface exposed" >> REPORT.md
+          echo "- [ ] Path traversal in URL construction" >> REPORT.md
+          echo "" >> REPORT.md
+          echo "Check the Security tab for actual results." >> REPORT.md
+
+      - name: Upload SARIF results
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-sarif-results
+          path: |
+            sarif-results/
+            *.sarif
+            REPORT.md
+          retention-days: 30
+
+      - name: Upload to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: sarif-results/java.sarif
+          category: medallia-webview-analysis
