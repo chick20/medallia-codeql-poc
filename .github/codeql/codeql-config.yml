@@ -1,0 +1,28 @@
+name: "Medallia WebView Security Analysis"
+
+disable-default-queries: false
+
+queries:
+  - uses: security-extended
+  - uses: security-and-quality
+  - uses: ./custom-queries/WebViewFileAccess.ql
+  - uses: ./custom-queries/PathTraversal.ql
+
+query-filters:
+  - include:
+      id: java/android/websettings-file-access
+      severity: critical
+  - include:
+      id: java/android/insecure-webview-settings
+      severity: high
+  - exclude:
+      id: java/trivial-eval
+
+paths:
+  - src/
+  - '**/*.java'
+
+paths-ignore:
+  - '**/test/**'
+  - '**/androidTest/**'
+  - '**/build/**'
